@@ -1,3 +1,4 @@
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -12,6 +13,7 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
+  var connectivityResult;
   bool isLoading = true;
   final weatherService = WeatherService('db104413cac435153be999e70c6169c8');
   WeatherModel? _weather;
@@ -55,10 +57,24 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
+  Future<void> checkInternetConnection() async {
+    var result = await Connectivity().checkConnectivity();
+    setState(() {
+      connectivityResult = result;
+    });
+
+    if (connectivityResult == ConnectivityResult.none) {
+      print("No internet connection");
+    } else {
+      print("Internet connection is available");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchWeather();
+    checkInternetConnection();
   }
 
   @override
@@ -66,39 +82,68 @@ class _WeatherPageState extends State<WeatherPage> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: Center(
-        child: isLoading
-            ? const CircularProgressIndicator(
-                color: Colors.white,
-              )
-            : Column(
+        child: connectivityResult == ConnectivityResult.none
+            ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 48,
-                    color: Colors.grey[300],
-                  ),
                   Text(
-                    _weather?.cityName ?? "Loading City!",
+                    "No Internet!",
                     style: GoogleFonts.quicksand(
                         fontSize: 48, color: Colors.grey[500]),
                   ),
-                  Lottie.asset(getWeatherAnimation(_weather?.condition)),
-                  Row(
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  SizedBox(
+                      height: 50,
+                      width: 150,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          checkInternetConnection();
+                        },
+                        style:
+                            ElevatedButton.styleFrom(primary: Colors.grey[500]),
+                        child: Text(
+                          "Reload",
+                          style: GoogleFonts.quicksand(
+                              fontSize: 18, color: Colors.white),
+                        ),
+                      )),
+                ],
+              )
+            : isLoading
+                ? const CircularProgressIndicator(
+                    color: Colors.white,
+                  )
+                : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 48,
+                        color: Colors.grey[300],
+                      ),
                       Text(
-                          _weather?.temperature.round().toString() ??
-                              "Temperature Loading!",
-                          style: GoogleFonts.quicksand(
-                              fontSize: 48, color: Colors.grey[500])),
-                      Text("°C",
-                          style: GoogleFonts.quicksand(
-                              fontSize: 48, color: Colors.grey[500])),
+                        _weather?.cityName ?? "Loading City!",
+                        style: GoogleFonts.quicksand(
+                            fontSize: 48, color: Colors.grey[500]),
+                      ),
+                      Lottie.asset(getWeatherAnimation(_weather?.condition)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                              _weather?.temperature.round().toString() ??
+                                  "Temperature Loading!",
+                              style: GoogleFonts.quicksand(
+                                  fontSize: 48, color: Colors.grey[500])),
+                          Text("°C",
+                              style: GoogleFonts.quicksand(
+                                  fontSize: 48, color: Colors.grey[500])),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
       ),
     );
   }
