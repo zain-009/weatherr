@@ -66,14 +66,13 @@ class _WeatherPageState extends State<WeatherPage> {
     if (connectivityResult == ConnectivityResult.none) {
       print("No internet connection");
     } else {
-      print("Internet connection is available");
+      _fetchWeather();
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _fetchWeather();
     checkInternetConnection();
   }
 
